@@ -11,6 +11,10 @@ concentration (g/m^3)
 2. Convert it into grams/hour/VKT. Because hour = 1, the emission factor is grams/VKT (I don't know why we used this, and I know now). 
     * Emission per activity * traffic flow * road length --> grams/VKT * n/hr * l = grams/hr => grams/s
 
+#why type 3 road does not need to sum run exh and start exh 
+#it seems that Caline4 does not have start exh
+#the unit of start exh is grams/start, but unfortunately, [Caline4 does not have inputs for start](http://shodhganga.inflibnet.ac.in/bitstream/10603/190635/14/14_appendix.pdf.pdf).
+
 ## Glossary
 * Road Type (column name from Emfac roadBasicInfo table)
     * 1: Type 1 Expressway (100kph)
