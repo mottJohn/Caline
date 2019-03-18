@@ -22,3 +22,6 @@ concentration (g/m^3)
     * 1: Type 1 Expressway (100kph)
     * 2: Type 2 Local Road without cold start (50kph)
     * 3: Type 3 Local Road with cold start (50 kph)
+
+## Units
+the input unit is usually in miles.
