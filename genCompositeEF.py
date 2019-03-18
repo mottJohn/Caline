@@ -1,6 +1,9 @@
 import pandas as pd 
 import numpy as np
 
+factor_NO2 = 1000
+factor_FSP = 1
+
 data = pd.read_csv("2024_Type3_hr_FSP.bdn.csv", header = 8) #read csv with header at position 8
 flow_data = pd.read_csv("hourlyVehicleFlow_transformed.csv")
 
@@ -38,4 +41,37 @@ flow_data['composit emission factor FSP'] = compositEF_FSP
 
 #print(flow_data)
 flow_data['colFromIndex'] = flow_data.index
-print(flow_data.sort_values(by = ['Hour','colFromIndex']))
+flow_data = flow_data.sort_values(by = ['Hour','colFromIndex'])
+flow_data.to_csv("compositEmissionFactor_NO2FSP.csv")
+
+###########
+#codes for generating input files
+#each road ID will be cut to several sections
+###########
+
+xls = pd.ExcelFile("roadCoordinates_template.xlsx")
+roadCoordinate = xls.parse("Sheet1")
+
+flow_data = pd.merge(flow_data, roadCoordinate, how = 'left', on=['Road ID'])
+flow_data['composit emission factor NO2'] = flow_data['composit emission factor NO2']*(1.60934)*factor_NO2 #*(1.60934) conver to miles
+flow_data['composit emission factor FSP'] = flow_data['composit emission factor FSP']*(1.60934)*factor_FSP
+
+with pd.ExcelWriter('traffic_NO2_FSP_inp.xlsx') as writer:
+    for hr in flow_data['Hour'].unique():
+        flow_data_hr = flow_data[flow_data['Hour'] == hr]
+
+        traffic_col = []
+        NO_2_col = []
+        FSP_col = []
+        for i in range(0, len(flow_data_hr), 4):
+            temp = pd.DataFrame(columns = ['Traffic', 'NO_2', 'FSP'])
+            slc = flow_data_hr.iloc[i:i+4]
+            traffic = slc['VEH'].astype(str).str.cat(sep = ' ')
+            NO_2 = slc['composit emission factor NO2'].astype(str).str.cat(sep = ' ') 
+            FSP = slc['composit emission factor FSP'].astype(str).str.cat(sep = ' ')
+            traffic_col.append(traffic)
+            NO_2_col.append(NO_2)
+            FSP_col.append(FSP)
+
+        input = pd.DataFrame({'Traffic':traffic_col, 'NO_2':NO_2_col, 'FSP':FSP_col})
+        input.to_excel(writer, sheet_name='Hr {}'.format(hr), index = False)
