@@ -12,14 +12,12 @@ data['Period'] = data['Period'].astype(int) -1
 data['NOx_RUNEX'] = data['NOx_RUNEX'].div(data['VKT'], axis = 0)
 data['PM2.5_RUNEX'] = data['PM2.5_RUNEX'].div(data['VKT'], axis = 0)
 
-#print(data)
-grouped_data = data.groupby(['Period', 'Veh']).sum() #group by period and vehicle type to get the EF in tonnes per hr
+grouped_data = data.groupby(['Period', 'Veh']).sum() #group by period and vehicle type to get the EF in tonnes per VKT
 
 cols = ['PC', 'Taxi', 'LGV3', 'LGV4', 'LGV6', 'HGV7', 'HGV8', 'PLB','PV4', 'PV5', 'NFB6', 'NFB7', 'NFB8', 'FBSD', 'FBDD', 'MC']
 flow_data[cols] = flow_data[cols].div(flow_data['VEH'], axis = 0) #get the percent
 
 NO_2_ratio = pd.DataFrame({'Veh':cols, 'Ratios':[0.057,0.026,0.082,0.080,0.280,0.303,0.117,0.151,0.187,0.252,0.280,0.272,0.092,0.102,0.062,0.050]})
-#print(flow_data)
 
 compositEF_NO2 = []
 compositEF_FSP = []
@@ -28,13 +26,19 @@ for index, row in flow_data.iterrows():
     row = row[cols]
     #print(row)
     #print(data_filtered)
-    merged = pd.merge(row.rename('EF (Tonnes per VKT)').to_frame(), data_filtered, how = 'left', right_on='Veh', left_index=True)
+    row = row.rename('EF (Tonnes per VKT)').to_frame()
+    row.index = row.index.str.upper() #convert to upper case for merge (very tricky)
+    NO_2_ratio['Veh'] = NO_2_ratio['Veh'].str.upper() #convert to upper case for merge (very tricky)
+    merged = pd.merge(row , data_filtered, right_on='Veh', left_index=True)
     merged = pd.merge(merged, NO_2_ratio, on='Veh')
+    #merged.to_csv("check_merged.csv")
     #print(merged)
-    compositeEF_1 = (merged['NOx_RUNEX']*merged['Ratios']*merged['EF (Tonnes per VKT)']).sum()*1000000
-    compositeEF_2 = (merged['PM2.5_RUNEX']*merged['EF (Tonnes per VKT)']).sum()*1000000
+    merged.to_csv("checking.csv")
+    compositeEF_1 = (merged['NOx_RUNEX']*1000000*merged['Ratios']*merged['EF (Tonnes per VKT)']).sum()
+    compositeEF_2 = (merged['PM2.5_RUNEX']*1000000*merged['EF (Tonnes per VKT)']).sum()
     compositEF_NO2.append(compositeEF_1)
     compositEF_FSP.append(compositeEF_2)
+
 
 flow_data['composit emission factor NO2'] = compositEF_NO2
 flow_data['composit emission factor FSP'] = compositEF_FSP
