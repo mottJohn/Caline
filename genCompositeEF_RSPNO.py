@@ -32,7 +32,7 @@ flow_data[cols] = flow_data[cols].div(flow_data['VEH'], axis = 0) #get the perce
 NO_ratio = pd.DataFrame({'Veh':cols, 'Ratios':[0.939,0.973,0.946,0.946,0.720,0.673,0.688,0.824,0.801,0.746,0.720,0.713,0.675,0.710,0.710,0.950]})
 
 compositEF_NO = []
-compositEF_FSP = []
+compositEF_RSP = []
 for index, row in flow_data.iterrows():
     data_filtered = data[data['Period'] == row['Hour']]
     row = row[cols]
@@ -46,13 +46,13 @@ for index, row in flow_data.iterrows():
     #merged.to_csv("check_merged.csv")
     #print(merged)
     compositeEF_1 = (merged['NOx_RUNEX']*1000000*merged['Ratios']*merged['Percent of Total Flow']).sum()
-    compositeEF_2 = (merged['PM2.5_RUNEX']*1000000*merged['Percent of Total Flow']).sum()
+    compositeEF_2 = (merged['PM10_RUNEX']*1000000*merged['Percent of Total Flow']).sum()
     compositEF_NO.append(compositeEF_1)
-    compositEF_FSP.append(compositeEF_2)
+    compositEF_RSP.append(compositeEF_2)
 
 
 flow_data['composit emission factor NO'] = compositEF_NO
-flow_data['composit emission factor RSP'] = compositEF_FSP
+flow_data['composit emission factor RSP'] = compositEF_RSP
 
 #print(flow_data)
 flow_data['colFromIndex'] = flow_data.index
@@ -76,8 +76,8 @@ with pd.ExcelWriter('traffic_NO_RSP_inp_{}.xlsx'.format(year)) as writer:
         flow_data_hr = flow_data[flow_data['Hour'] == hr]
 
         traffic_col = []
-        NO_2_col = []
-        FSP_col = []
+        NO_col = []
+        RSP_col = []
         for i in range(0, len(flow_data_hr), 4):
             temp = pd.DataFrame(columns = ['Traffic', 'NO_2', 'FSP'])
             slc = flow_data_hr.iloc[i:i+4]
